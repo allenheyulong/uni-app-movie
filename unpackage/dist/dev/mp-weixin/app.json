@@ -2,7 +2,16 @@
   "pages": [
     "pages/index/index",
     "pages/search/search",
-    "pages/me/me"
+    "pages/me/me",
+    "pages/detail/detail",
+    "pages/cover/cover",
+    "pages/registerLogin/registerLogin",
+    "pages/myInfo/myInfo",
+    "pages/myFace/myFace",
+    "pages/faceCrop/faceCrop",
+    "pages/nickName/nickName",
+    "pages/birthday/birthday",
+    "pages/gender/gender"
   ],
   "subPackages": [],
   "window": {
@@ -37,6 +46,5 @@
       }
     ]
   },
-  "usingComponents": {},
-  "sitemapLocation": "sitemap59.json"
+  "usingComponents": {}
 }

@@ -1,3 +1,7 @@
 {
-  "usingComponents": {}
+  "enablePullDownRefresh": true,
+  "titleNView": false,
+  "usingComponents": {
+    "uni-rate": "/components/uni-rate/uni-rate"
+  }
 }

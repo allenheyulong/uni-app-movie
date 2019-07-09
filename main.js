@@ -4,7 +4,7 @@ import moment from 'dayjs'
 
 
 Vue.prototype.$moment = moment
-Vue.prototype.$api = 'https://www.imovietrailer.com/superhero/index'
+Vue.prototype.$api = 'https://www.imovietrailer.com/superhero'
 Vue.config.productionTip = false
 
 App.mpType = 'app'

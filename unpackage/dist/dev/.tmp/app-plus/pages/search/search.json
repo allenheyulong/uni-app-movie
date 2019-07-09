@@ -1,3 +1,6 @@
 {
-  "usingComponents": {}
+  "titleNView": false,
+  "usingComponents": {
+    "m-search": "/components/mehaotian-search/mehaotian-search"
+  }
 }

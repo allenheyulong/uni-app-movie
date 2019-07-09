@@ -11,13 +11,14 @@
     "code": "100"
   },
   "description": "",
-  "launch_path": "__uniappview.html",
+  "launch_path": "__uniapptabbar.html",
   "developer": {
     "name": "",
     "email": "",
     "url": ""
   },
   "permissions": {
+    "OAuth": {},
     "UniNView": {
       "description": "UniNView原生渲染"
     }
@@ -35,9 +36,7 @@
     },
     "popGesture": "close",
     "launchwebview": {
-      "render": "always",
-      "id": "1",
-      "kernel": "WKWebview"
+      "render": "always"
     },
     "statusbar": {
       "immersed": "supportedDevice",
@@ -74,6 +73,20 @@
       },
       "apple": {},
       "plugins": {
+        "oauth": {
+          "weixin": {
+            "appid": "wxa422a42817d79ce9",
+            "appsecret": "7bde315dcacff4f3c5b1c25d4fcf9554"
+          },
+          "qq": {
+            "appid": "123"
+          },
+          "sina": {
+            "appkey": "123",
+            "appsecret": "123",
+            "redirect_uri": "123"
+          }
+        },
         "audio": {
           "mp3": {
             "description": "Android平台录音支持MP3格式文件"
@@ -82,10 +95,24 @@
       }
     },
     "allowsInlineMediaPlayback": true,
+    "safearea": {
+      "background": "#ffffff",
+      "bottom": {
+        "offset": "auto"
+      }
+    },
     "uni-app": {
       "compilerVersion": "2.0.1",
       "control": "v8",
       "nvueCompiler": "weex"
+    },
+    "secondwebview": {
+      "id": "1",
+      "launch_path": "__uniappview.html",
+      "kernel": "WKWebview",
+      "mode": "child",
+      "top": 0,
+      "bottom": 56
     }
   }
 }

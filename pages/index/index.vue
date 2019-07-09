@@ -9,15 +9,15 @@
 		<view>
 			<view class="page-block hot">
 				<view class="h-desc">
-					<view class="h-img"><image src="/static/icos/hot.png" mode=""></image></view>
+					<view class="h-img"><image src="/static/icos/hot.png" :lazy-load="true"></image></view>
 					<view class="h-title"><div>热门超英</div></view>
 				</view>
 			</view>
 		</view>
 
 		<scroll-view scroll-x class="page-block scroll">
-			<view class="s-desc" v-for="(item, index) in movieList" :key="item.id">
-				<view class="img"><image :src="item.cover" mode=""></image></view>
+			<view class="s-desc" v-for="(item, index) in movieList" :key="item.id" @click="goDetail(item)">
+				<view class="img"><image :src="item.cover" :lazy-load="true"></image></view>
 				<view class="title">{{ item.name }}</view>
 				<view class="rate">
 					<view class="r-desc"><uni-rate :value="item.score / 2" :max="5" size="12"></uni-rate></view>
@@ -29,7 +29,7 @@
 		<view>
 			<view class="page-block hot">
 				<view class="h-desc">
-					<view class="h-img"><image src="/static/icos/interest.png" mode=""></image></view>
+					<view class="h-img"><image src="/static/icos/interest.png" :lazy-load="true"></image></view>
 					<view class="h-title"><div>热门预告</div></view>
 				</view>
 			</view>
@@ -37,22 +37,24 @@
 
 		<view class="v-con">
 			<view class="v-desc" v-for="(item, index) in trailer" :key="item.id">
-				<view class="v-item"><video :src="item.trailer" :poster="item.cover" controls class="video"></video></view>
+				<view class="v-item"><video :src="item.trailer" :id="item.id" :poster="item.cover" controls class="video"  @play="play(item.id)"></video></view>
 			</view>
 		</view>
 
-		<view class="like">
-			<view class="l-con" v-for="(item, index) in likes" :key="item.id">
-				<view class="l-img"><image class="img" :src="item.poster" mode=""></image></view>
-				<view class="l-desc">
-					<view class="name">{{ item.name }}</view>
+		<view class="page-block guess-u-like">
+			<view  class="single-like-movie" v-for="(item, index) in likes" :key="item.id">
+				<image :src="item.cover" class="like-movie" :lazy-load="true" @click="goDetail(item)"></image>
+				<view class="movie-desc">
+					<view class="movie-title">{{ item.name }}</view>
 					<view class="score"><uni-rate size="12" :max="5" :value="item.score"></uni-rate></view>
-					<view class="info">{{ item.basicInfo }}</view>
-					<view class="time">上映时间: {{ item.createTime }}</view>
+					<view class="movie-info">{{ item.basicInfo }}</view>
+					<view class="movie-info">上映时间: {{ item.createTime }}</view>
 				</view>
-				<view class="zan">
-					<view class="z-img"><image class="z-image" src="/static/icos/praise.png" mode=""></image></view>
-					<view class="z-desc">赞一下</view>
+				<view class="movie-oper"   @click="praiseMe">
+					<image src="/static/icos/praise.png" class="praise-ico" :lazy-load="true"></image>
+					<view class="praise-me">
+						赞一下
+					</view>
 				</view>
 			</view>
 		</view>
@@ -60,7 +62,8 @@
 </template>
 
 <script>
-import uniRate from '../../components/uni-rate/uni-rate.vue';
+import uniRate from '../../components/uni-rate/uni-rate.vue'
+ 
 export default {
 	name: 'index',
 	components: {
@@ -71,7 +74,9 @@ export default {
 			banners: [],
 			movieList: [], //电影
 			trailer: [], // 预告
-			likes: [] // 猜你喜欢
+			likes: [], // 猜你喜欢
+			isPull: false,
+			
 		};
 	},
 	onLoad() {
@@ -80,10 +85,38 @@ export default {
 		this.getTrailer();
 		this.getLikes();
 	},
+	onPullDownRefresh() {
+		this.isPull = true
+		this.getLikes()
+	},
+	onHide () {
+		if (this.video) {
+			this.video.pause()
+		}
+	},
 	methods: {
+		// 视频播放
+		play (id) {
+			this.video = uni.createVideoContext(id)
+			this.trailer.map(item => {
+				if (item.id !== id) {
+					uni.createVideoContext(item.id).pause()
+				}
+			})
+		},
+		// 去详情页
+		goDetail(item) {
+			uni.navigateTo({
+				url: '/pages/detail/detail?item=' + JSON.stringify(item)
+			});
+		},
+		// 获取数据
 		getData() {
+			uni.showLoading({
+				title:"加载中..."
+			})
 			uni.request({
-				url: `${this.$api}/carousel/list`,
+				url: `${this.$api}/index/carousel/list`,
 				method: 'POST',
 				data: {
 					qq: '7929290'
@@ -93,14 +126,19 @@ export default {
 				},
 				success: res => {
 					if (res.data.status === 200) {
+						uni.hideLoading()
 						this.banners = res.data.data;
 					}
 				}
 			});
 		},
+		// 获取电影列表
 		getMovieList() {
+			uni.showLoading({
+				title:"加载中..."
+			})
 			uni.request({
-				url: `${this.$api}/movie/hot`,
+				url: `${this.$api}/index/movie/hot`,
 				method: 'POST',
 				data: {
 					qq: '7929290',
@@ -110,13 +148,21 @@ export default {
 					'content-type': 'application/x-www-form-urlencoded'
 				},
 				success: res => {
-					this.movieList = res.data.data;
+					if (res) {
+						uni.hideLoading()
+						this.movieList = res.data.data
+					}
+					
 				}
 			});
 		},
+		 // 获取播放视频
 		getTrailer() {
+			uni.showLoading({
+				title:"加载中..."
+			})
 			uni.request({
-				url: `${this.$api}/movie/hot`,
+				url: `${this.$api}/index/movie/hot`,
 				method: 'POST',
 				data: {
 					qq: '7929290',
@@ -126,13 +172,18 @@ export default {
 					'content-type': 'application/x-www-form-urlencoded'
 				},
 				success: res => {
-					this.trailer = res.data.data;
+					if (res) {
+						uni.hideLoading()
+						this.trailer = res.data.data;
+					}
+					
 				}
 			});
 		},
+		// 获取猜你喜欢
 		getLikes() {
 			uni.request({
-				url: `${this.$api}/guessULike`,
+				url: `${this.$api}/index/guessULike`,
 				method: 'POST',
 				data: {
 					qq: '7929290',
@@ -142,13 +193,30 @@ export default {
 					'content-type': 'application/x-www-form-urlencoded'
 				},
 				success: res => {
-					console.log(res.data.data);
-					this.likes = res.data.data;
-					this.likes.map(item => {
-						item.createTime = this.$moment(item.createTime).format('YYYY-MM-DD');
-					});
+					if (res) {
+						uni.stopPullDownRefresh()
+						this.likes = res.data.data;
+						this.likes.map(item => {
+							item.createTime = this.$moment(item.createTime).format('YYYY-MM-DD');
+						})
+						if (this.isPull) {
+							setTimeout(() => {
+								uni.showToast({
+									icon: 'success',
+									title: '刷新成功'
+								})
+							}, 500)
+						}
+					}
 				}
-			});
+			})
+		},
+		// 点赞
+		praiseMe () {
+			uni.showToast({
+				icon:'success',
+				title: '点赞成功'
+			})
 		}
 	}
 };
@@ -185,7 +253,7 @@ export default {
 			direction: flex;
 			align-items: center;
 			margin-left: 20upx;
-			font-size: 20upx;
+			font-size: 24upx;
 			font-weight: bold;
 		}
 	}
@@ -248,68 +316,61 @@ export default {
 		}
 	}
 }
-.like {
-	.l-con {
-		display: flex;
-		align-items: center;
-		margin: 20px 0;
-		.l-img {
-			flex: 2;
-			margin-left: 20upx;
-			height: 360upx;
-			.img {
-				width: 260upx;
-				height: 360upx;
-				border-radius: 20upx;
-			}
-		}
-		.zan {
-			flex: 3;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			width: 20%;
-			.z-img {
-				display: flex;
-				justify-content: center;
-				width: 100%;
-				height: 60upx;
-				.z-image {
-					width: 60upx;
-					height: 60upx;
-				}
-			}
-			.z-desc {
-				font-size: 24upx;
-			}
-		}
-		.l-desc {
-			margin-left: 20upx;
-			border-right: 4upx dashed #ccc;
-			flex: 5;
-			height: 360upx;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			padding: 0 20upx;
-			.name {
-				font-weight: 700;
-			}
-			.info {
-				color: #ccc;
-				font-size: 28upx;
-				margin-top: 10upx;
-			}
-			.score {
-				margin-top: 10upx;
-			}
-			.time {
-				color: #ccc;
-				font-size: 28upx;
-				margin-top: 10upx;
-			}
-		}
-	}
+.guess-u-like {
+	display: flex;
+	flex-direction: column;
+}
+.single-like-movie {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	padding: 30upx 20upx;
+}
+.like-movie {
+	width: 180upx;
+	height: 240upx;
+	border-radius: 3%;
+}
+.movie-desc {
+	width: 340upx;
+	display: flex;
+	flex-direction: column;
+}
+.movie-title {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.movie-info {
+	color: #808080;
+	font-size: 14px;
+}
+
+/* 点赞css */
+.movie-oper {
+	width: 140upx;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	
+	border-left: dashed 2px;
+	border-left-color: #dbdbda;
+}
+
+.praise-ico {
+	width: 40upx;
+	height: 40upx;
+	align-self: center;
+}
+
+.praise-me {
+	font-size: 14px;
+	color: #feab2a;
+	align-self: center;
+}
+
+.animation-opacity {
+	font-weight: bold;
+	opacity: 0;
 }
 </style>

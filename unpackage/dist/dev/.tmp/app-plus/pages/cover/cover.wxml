@@ -1,0 +1,1 @@
+<view class="container"><image class="img" src="{{imgUrl}}" mode="widthFix" data-event-opts="{{[['longpress',[['opertar',['$event']]]]]}}" bindlongpress="__e"></image></view>

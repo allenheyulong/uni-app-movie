@@ -71,6 +71,9 @@
 
 
 
+
+
+
 {
   name: 'index',
   components: {
@@ -81,8 +84,10 @@
       banners: [],
       movieList: [], //电影
       trailer: [], // 预告
-      likes: [] // 猜你喜欢
-    };
+      likes: [], // 猜你喜欢
+      isPull: false };
+
+
   },
   onLoad: function onLoad() {
     this.getData();
@@ -90,10 +95,38 @@
     this.getTrailer();
     this.getLikes();
   },
+  onPullDownRefresh: function onPullDownRefresh() {
+    this.isPull = true;
+    this.getLikes();
+  },
+  onHide: function onHide() {
+    if (this.video) {
+      this.video.pause();
+    }
+  },
   methods: {
+    // 视频播放
+    play: function play(id) {
+      this.video = uni.createVideoContext(id);
+      this.trailer.map(function (item) {
+        if (item.id !== id) {
+          uni.createVideoContext(item.id).pause();
+        }
+      });
+    },
+    // 去详情页
+    goDetail: function goDetail(item) {
+      uni.navigateTo({
+        url: '/pages/detail/detail?item=' + JSON.stringify(item) });
+
+    },
+    // 获取数据
     getData: function getData() {var _this = this;
+      uni.showLoading({
+        title: "加载中..." });
+
       uni.request({
-        url: "".concat(this.$api, "/carousel/list"),
+        url: "".concat(this.$api, "/index/carousel/list"),
         method: 'POST',
         data: {
           qq: '7929290' },
@@ -103,14 +136,19 @@
 
         success: function success(res) {
           if (res.data.status === 200) {
+            uni.hideLoading();
             _this.banners = res.data.data;
           }
         } });
 
     },
+    // 获取电影列表
     getMovieList: function getMovieList() {var _this2 = this;
+      uni.showLoading({
+        title: "加载中..." });
+
       uni.request({
-        url: "".concat(this.$api, "/movie/hot"),
+        url: "".concat(this.$api, "/index/movie/hot"),
         method: 'POST',
         data: {
           qq: '7929290',
@@ -120,13 +158,21 @@
           'content-type': 'application/x-www-form-urlencoded' },
 
         success: function success(res) {
-          _this2.movieList = res.data.data;
+          if (res) {
+            uni.hideLoading();
+            _this2.movieList = res.data.data;
+          }
+
         } });
 
     },
+    // 获取播放视频
     getTrailer: function getTrailer() {var _this3 = this;
+      uni.showLoading({
+        title: "加载中..." });
+
       uni.request({
-        url: "".concat(this.$api, "/movie/hot"),
+        url: "".concat(this.$api, "/index/movie/hot"),
         method: 'POST',
         data: {
           qq: '7929290',
@@ -136,13 +182,18 @@
           'content-type': 'application/x-www-form-urlencoded' },
 
         success: function success(res) {
-          _this3.trailer = res.data.data;
+          if (res) {
+            uni.hideLoading();
+            _this3.trailer = res.data.data;
+          }
+
         } });
 
     },
+    // 获取猜你喜欢
     getLikes: function getLikes() {var _this4 = this;
       uni.request({
-        url: "".concat(this.$api, "/guessULike"),
+        url: "".concat(this.$api, "/index/guessULike"),
         method: 'POST',
         data: {
           qq: '7929290',
@@ -152,12 +203,29 @@
           'content-type': 'application/x-www-form-urlencoded' },
 
         success: function success(res) {
-          console.log(res.data.data);
-          _this4.likes = res.data.data;
-          _this4.likes.map(function (item) {
-            item.createTime = _this4.$moment(item.createTime).format('YYYY-MM-DD');
-          });
+          if (res) {
+            uni.stopPullDownRefresh();
+            _this4.likes = res.data.data;
+            _this4.likes.map(function (item) {
+              item.createTime = _this4.$moment(item.createTime).format('YYYY-MM-DD');
+            });
+            if (_this4.isPull) {
+              setTimeout(function () {
+                uni.showToast({
+                  icon: 'success',
+                  title: '刷新成功' });
+
+              }, 500);
+            }
+          }
         } });
+
+    },
+    // 点赞
+    praiseMe: function praiseMe() {
+      uni.showToast({
+        icon: 'success',
+        title: '点赞成功' });
 
     } } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ "./node_modules/@dcloudio/uni-mp-weixin/dist/index.js")["default"]))
